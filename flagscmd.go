@@ -15,6 +15,5 @@ func (flc *flagsCmd) SetFlags(flags *flag.FlagSet) {
 }
 
 func (flc *flagsCmd) Exec(_ []string) error {
-	// TODO: use a "hasExec" in cmdNode that is set to false for flagsCmd
 	return fmt.Errorf("not implemented")
 }
