@@ -2,16 +2,16 @@ package minicli
 
 import "strings"
 
-// Register registers a new subcommand. The name of the command is of the form
+// Cmd registers a new subcommand. The name of the command is of the form
 // "sub1 sub2 ..." where deeper subcommand layers may be specified with a space in between.
-func Register(name, help string, command Command) {
+func Cmd(name, help string, command Command) {
 	register(name, help, command, false)
 }
 
-// RegisterFunc registers a new subcommand using only an execution handler. The name of the
+// Func registers a new subcommand using only an execution handler. The name of the
 // command is of the form "sub1 sub2 ..." where deeper subcommand layers may be specified with a
 // space in between.
-func RegisterFunc(name, help string, handler func(args []string) error) {
+func Func(name, help string, handler func(args []string) error) {
 	registerFunc(name, help, handler, false)
 }
 

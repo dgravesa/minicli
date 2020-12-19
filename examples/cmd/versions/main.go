@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	minicli.RegisterFunc("list", "list versions", listVersions)
-	minicli.Register("current", "get current version", nil)
-	minicli.Register("current major", "get current major version", nil)
-	minicli.Register("current minor", "get current minor version", nil)
-	minicli.Register("current patch", "get current patch version", nil)
-	minicli.Register("suggest", "suggest a version", new(SuggestCmd))
+	minicli.Func("list", "list versions", listVersions)
+	minicli.Cmd("current", "get current version", nil)
+	minicli.Cmd("current major", "get current major version", nil)
+	minicli.Cmd("current minor", "get current minor version", nil)
+	minicli.Cmd("current patch", "get current patch version", nil)
+	minicli.Cmd("suggest", "suggest a version", new(SuggestCmd))
 
 	err := minicli.Exec()
 	if err != nil {
