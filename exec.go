@@ -7,7 +7,7 @@ import (
 )
 
 var commandgraph = map[string]*commandNode{
-	"": newCommandNode(nil, filepath.Base(os.Args[0]), ""),
+	"": newCmdNode(nil, filepath.Base(os.Args[0]), ""),
 }
 
 func init() {
@@ -27,7 +27,7 @@ func Exec() error {
 		nextsubcommand, found := commandgraph[cmdpathext]
 		if found {
 			args := os.Args[subcommandindex+1 : i]
-			if subcommand.Command != nil {
+			if subcommand.CmdImpl != nil {
 				// prepare subcommand flags
 				subcommand.setFlags()
 			}
@@ -39,7 +39,7 @@ func Exec() error {
 			argrem := subcommand.flags.Args()
 			if len(argrem) > 0 {
 				// positional arguments remaining after parsing subcommand's arguments
-				if subcommand.Command != nil {
+				if subcommand.CmdImpl != nil {
 					// positional argument detected, so treat remaining arguments as positional
 					return subcommand.Exec(os.Args[subcommandindex+1:])
 				}
@@ -52,7 +52,7 @@ func Exec() error {
 		}
 	}
 
-	if subcommand.Command == nil {
+	if subcommand.CmdImpl == nil {
 		if len(subcommand.subcommands) == 0 {
 			// subcommand has no path to execution
 			return fmt.Errorf("not yet implemented")

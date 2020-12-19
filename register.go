@@ -4,7 +4,7 @@ import "strings"
 
 // Cmd registers a new subcommand. The name of the command is of the form
 // "sub1 sub2 ..." where deeper subcommand layers may be specified with a space in between.
-func Cmd(name, help string, command Command) {
+func Cmd(name, help string, command CmdImpl) {
 	register(name, help, command, false)
 }
 
@@ -15,15 +15,15 @@ func Func(name, help string, handler func(args []string) error) {
 	registerFunc(name, help, handler, false)
 }
 
-func register(name, help string, command Command, isHelpFunc bool) {
+func register(name, help string, command CmdImpl, isHelpFunc bool) {
 	cmdnode, found := commandgraph[name]
 	if found {
 		// node already exists, so fill in its details
-		cmdnode.Command = command
+		cmdnode.CmdImpl = command
 		cmdnode.help = help
 	} else {
 		// node does not exist, so create it
-		cmdnode = newCommandNode(command, name, help)
+		cmdnode = newCmdNode(command, name, help)
 		commandgraph[name] = cmdnode
 
 		cmdsplit := strings.Split(name, " ")
@@ -45,7 +45,7 @@ func register(name, help string, command Command, isHelpFunc bool) {
 				break
 			} else {
 				// create previous node as empty command except for this subcommand
-				prevnode = newCommandNode(nil, prevname, "")
+				prevnode = newCmdNode(nil, prevname, "")
 				prevnode.subcommands[subcommand] = currnode
 				commandgraph[prevname] = prevnode
 				currnode = prevnode
@@ -59,5 +59,5 @@ func register(name, help string, command Command, isHelpFunc bool) {
 }
 
 func registerFunc(name, help string, handler func(args []string) error, isHelpFunc bool) {
-	register(name, help, &FuncCommand{handler: handler}, isHelpFunc)
+	register(name, help, &FuncCmd{handler: handler}, isHelpFunc)
 }

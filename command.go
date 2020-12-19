@@ -7,16 +7,16 @@ import (
 	"os"
 )
 
-// Command is an interface for a subcommand.
+// CmdImpl is an interface for a subcommand.
 // Any command that is detected on the command line will have ParseArgs run with its arguments.
 // The final subcommand in the command line will have Exec run with remaining positional arguments.
-type Command interface {
+type CmdImpl interface {
 	SetFlags(flags *flag.FlagSet)
 	Exec(pargs []string) error
 }
 
 type commandNode struct {
-	Command
+	CmdImpl
 	name        string
 	help        string
 	subcommands map[string]*commandNode
@@ -24,9 +24,9 @@ type commandNode struct {
 	flagsSet    bool
 }
 
-func newCommandNode(command Command, name, help string) *commandNode {
+func newCmdNode(command CmdImpl, name, help string) *commandNode {
 	return &commandNode{
-		Command:     command,
+		CmdImpl:     command,
 		name:        name,
 		help:        help,
 		subcommands: make(map[string]*commandNode),
@@ -43,7 +43,7 @@ func helpFunc(cmdnode *commandNode) func(_ []string) error {
 }
 
 func (cmdnode *commandNode) setFlags() {
-	if cmdnode.Command != nil {
+	if cmdnode.CmdImpl != nil {
 		if !cmdnode.flagsSet {
 			cmdnode.SetFlags(cmdnode.flags)
 		}
