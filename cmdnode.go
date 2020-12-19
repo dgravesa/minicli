@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 type cmdNode struct {
@@ -117,9 +118,26 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 
 	// print subcommands, if any
 	if len(cmdnode.subcommands) > 0 {
+		maxlen := 0
+		subcmds := []*cmdNode{}
+		for _, subcmd := range cmdnode.subcommands {
+			subcmds = append(subcmds, subcmd)
+			if len(subcmd.name) > maxlen {
+				maxlen = len(subcmd.name)
+			}
+		}
+
+		// compute margins
+		tabw := 8
+		tabstr := strings.Repeat(" ", tabw)
+		buf := 5
+		helpoffset := tabw * ((maxlen+buf)/tabw + 1)
+
 		fmt.Fprintln(w, "Available subcommands:")
-		for name, subcmd := range cmdnode.subcommands {
-			fmt.Fprintf(w, "\t%s\t\t%s\n", name, subcmd.help)
+		for _, subcmd := range subcmds {
+			offsetrem := helpoffset - len(subcmd.name)
+			offsetstr := strings.Repeat(" ", offsetrem)
+			fmt.Fprintf(w, "%s%s%s%s\n", tabstr, subcmd.name, offsetstr, subcmd.help)
 		}
 		fmt.Fprintln(w)
 	}
