@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 )
 
 // Command is an interface for a subcommand.
@@ -29,6 +30,13 @@ func newCommandNode(command Command, name, help string) *commandNode {
 		help:        help,
 		subcommands: make(map[string]*commandNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
+	}
+}
+
+func helpFunc(cmdnode *commandNode) func(_ []string) error {
+	return func(_ []string) error {
+		cmdnode.writeUsage(os.Stdout)
+		return nil
 	}
 }
 

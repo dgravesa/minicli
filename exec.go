@@ -9,6 +9,10 @@ var commandgraph = map[string]*commandNode{
 	"": newCommandNode(nil, os.Args[0], ""),
 }
 
+func init() {
+	registerFunc("help", "print help for any command", helpFunc(commandgraph[""]), true)
+}
+
 // Exec executes a minicli program.
 func Exec() error {
 	cmdpath := ""
