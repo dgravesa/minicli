@@ -52,10 +52,14 @@ func Exec() error {
 		}
 	}
 
+	argrem := os.Args[subcommandindex+1:]
 	if subcommand.CmdImpl == nil {
 		if len(subcommand.subcommands) == 0 {
 			// subcommand has no path to execution
 			return fmt.Errorf("not yet implemented")
+		} else if len(argrem) > 0 {
+			// no executable for subcommand, so treat next argument as unknown subcommand
+			return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
 		}
 		// additional subcommand needed to execute
 		subcommand.writeUsage(os.Stdout)
