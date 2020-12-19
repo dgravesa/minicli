@@ -15,5 +15,6 @@ func (flc *flagsCmd) SetFlags(flags *flag.FlagSet) {
 }
 
 func (flc *flagsCmd) Exec(_ []string) error {
+	// NOTE: this should not be reachable
 	return fmt.Errorf("not implemented")
 }

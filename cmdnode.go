@@ -15,9 +15,11 @@ type cmdNode struct {
 	subcommands map[string]*cmdNode
 	flags       *flag.FlagSet
 	flagsSet    bool
+	hasExec     bool
+	hasFlags    bool
 }
 
-func newCmdNode(name string) *cmdNode {
+func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 	return &cmdNode{
 		cmd:         nil,
 		name:        name,
@@ -25,50 +27,64 @@ func newCmdNode(name string) *cmdNode {
 		subcommands: make(map[string]*cmdNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
 		flagsSet:    false,
+		hasExec:     hasExec,
+		hasFlags:    hasFlags,
 	}
 }
 
 func (cmdnode *cmdNode) exec(args []string) error {
+	if len(cmdnode.subcommands) == 0 {
+		// this command has no subcommands
+		if cmdnode.hasExec {
+			// execute this command with remaining arguments
+			return cmdnode.cmd.Exec(args)
+		}
+		// no execution and no subcommands, so assume not yet implemented
+		return fmt.Errorf("not yet implemented")
+	}
+
+	// search for next subcommand
 	for i, arg := range args {
 		nextnode, found := cmdnode.subcommands[arg]
 		if found {
-			// parse arguments for this node
-			if cmdnode.cmd != nil {
+			// subcommand found
+			if cmdnode.hasFlags {
+				// parse arguments for this node
 				cmdnode.setFlags()
 				cmdnode.flags.Parse(args[0:i])
 			}
-			// defer execution to next node
+			// defer execution to subcommand
 			return nextnode.exec(args[i+1:])
 		}
 	}
-	// no more subcommands found in arguments
-	if cmdnode.cmd != nil {
-		// parse arguments for this node
+
+	// this command has subcommands but none found in remaining arguments
+	argrem := args
+	if cmdnode.hasFlags {
+		// this command has flags to parse
 		cmdnode.setFlags()
 		cmdnode.flags.Parse(args)
-		// execute this node with remaining arguments
-		return cmdnode.cmd.Exec(cmdnode.flags.Args())
-	} else if len(cmdnode.subcommands) > 0 {
-		// subcommands exist but none found in arguments
-		if len(args) > 0 {
-			if strings.HasSuffix(args[0], "-help") {
-				// assume help request, do not error
-				cmdnode.writeUsage(os.Stdout)
-				return nil
-			}
-			// assume unrecognized subcommand
-			return fmt.Errorf("unrecognized subcommand: %s", args[0])
-		}
-		// print usage
-		cmdnode.writeUsage(os.Stdout)
-		return fmt.Errorf("expected subcommand")
+		argrem = cmdnode.flags.Args()
 	}
-	// no execution and no subcommands, so assume not yet implemented
-	return fmt.Errorf("not yet implemented")
+	if !cmdnode.hasExec {
+		// this command is not executable
+		cmdnode.writeUsage(os.Stdout)
+		if len(argrem) == 0 {
+			// assume missing subcommand
+			return fmt.Errorf("expected subcommand")
+		} else if strings.HasSuffix(argrem[0], "-help") {
+			// assume help request, do not error
+			return nil
+		}
+		// assume unrecognized subcommand
+		return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
+	}
+	// execute this command with remaining arguments
+	return cmdnode.cmd.Exec(argrem)
 }
 
 func (cmdnode *cmdNode) setFlags() {
-	if !cmdnode.flagsSet {
+	if cmdnode.hasFlags && !cmdnode.flagsSet {
 		cmdnode.cmd.SetFlags(cmdnode.flags)
 		cmdnode.flagsSet = true
 	}
@@ -93,17 +109,7 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 	}
 
 	// print command line options, if any
-	hasFlags := func(node *cmdNode) bool {
-		hasflags := false
-		if node.cmd != nil {
-			cmdnode.setFlags()
-			cmdnode.flags.VisitAll(func(_ *flag.Flag) {
-				hasflags = true
-			})
-		}
-		return hasflags
-	}
-	if hasFlags(cmdnode) {
+	if cmdnode.hasFlags {
 		resetw := cmdnode.flags.Output()
 		cmdnode.flags.SetOutput(w)
 		cmdnode.flags.Usage()

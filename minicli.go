@@ -11,7 +11,7 @@ import (
 var execname = filepath.Base(os.Args[0])
 
 // initialize graph entry as top level node
-var miniCmdGraph = newCmdNode(execname)
+var miniCmdGraph = newCmdNode(execname, false, false)
 
 // initialize command map with top level node
 var miniCmdMap = map[string]*cmdNode{
@@ -42,7 +42,11 @@ func Exec() error {
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
 func Cmd(name, help string, command CmdImpl) {
-	register(name, help, command)
+	if command != nil {
+		register(name, help, command, true, true)
+	} else {
+		register(name, help, nil, false, false)
+	}
 }
 
 // Func registers a new subcommand that either has no argument parsing or handles all of its
@@ -51,7 +55,11 @@ func Cmd(name, help string, command CmdImpl) {
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
 func Func(name, help string, handler func(args []string) error) {
-	register(name, help, &funcCmd{handler: handler})
+	if handler != nil {
+		register(name, help, &funcCmd{handler: handler}, true, false)
+	} else {
+		register(name, help, nil, false, false)
+	}
 }
 
 // Flags registers a new subcommand that only sets flags and does not have an associated execution.
@@ -60,5 +68,9 @@ func Func(name, help string, handler func(args []string) error) {
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
 func Flags(name, help string, setflags func(flags *flag.FlagSet)) {
-	register(name, help, &flagsCmd{setflags: setflags})
+	if setflags != nil {
+		register(name, help, &flagsCmd{setflags: setflags}, false, true)
+	} else {
+		register(name, help, nil, false, false)
+	}
 }
