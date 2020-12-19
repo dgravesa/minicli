@@ -41,11 +41,11 @@ func Exec() error {
 // Cmd registers a new subcommand.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func Cmd(name, help string, command CmdImpl) {
+func Cmd(name, help string, command CmdImpl) CmdDecl {
 	if command != nil {
-		register(name, help, command, true, true)
+		return register(name, help, command, true, true)
 	} else {
-		register(name, help, nil, false, false)
+		return register(name, help, nil, false, false)
 	}
 }
 
@@ -54,11 +54,11 @@ func Cmd(name, help string, command CmdImpl) {
 // Func is most sensible to use for subcommands that don't have any deeper subcommands.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func Func(name, help string, handler func(args []string) error) {
+func Func(name, help string, handler func(args []string) error) CmdDecl {
 	if handler != nil {
-		register(name, help, &funcCmd{handler: handler}, true, false)
+		return register(name, help, &funcCmd{handler: handler}, true, false)
 	} else {
-		register(name, help, nil, false, false)
+		return register(name, help, nil, false, false)
 	}
 }
 
@@ -67,10 +67,10 @@ func Func(name, help string, handler func(args []string) error) {
 // this subcommand may be used to parse arguments needed by deeper subcommands.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func Flags(name, help string, setflags func(flags *flag.FlagSet)) {
+func Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdDecl {
 	if setflags != nil {
-		register(name, help, &flagsCmd{setflags: setflags}, false, true)
+		return register(name, help, &flagsCmd{setflags: setflags}, false, true)
 	} else {
-		register(name, help, nil, false, false)
+		return register(name, help, nil, false, false)
 	}
 }

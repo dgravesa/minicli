@@ -11,6 +11,7 @@ type cmdNode struct {
 	cmd         CmdImpl
 	name        string
 	help        string
+	description string
 	subcommands map[string]*cmdNode
 	flags       *flag.FlagSet
 	flagsSet    bool
@@ -23,6 +24,7 @@ func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 		cmd:         nil,
 		name:        name,
 		help:        "",
+		description: "",
 		subcommands: make(map[string]*cmdNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
 		flagsSet:    false,
@@ -106,6 +108,12 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 		fmt.Fprintln(w, cmdnode.name)
 	}
 	fmt.Fprintln(w)
+
+	// print long description, if there is one
+	if cmdnode.description != "" {
+		fmt.Fprintln(w, cmdnode.description)
+		fmt.Fprintln(w)
+	}
 
 	// print subcommands, if any
 	if len(cmdnode.subcommands) > 0 {

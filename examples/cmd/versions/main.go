@@ -7,7 +7,12 @@ import (
 	"github.com/dgravesa/minicli"
 )
 
+var description = `The versions tool provides some basic operations to check versions of the current repository.
+With the versions tool, you can list versions, get the current version, or get suggestions for
+the next version of your project.`
+
 func main() {
+	minicli.Cmd("", "", nil).WithDescription(description)
 	minicli.Func("list", "list versions", listVersions)
 	minicli.Cmd("current", "get current version", nil)
 	minicli.Cmd("current major", "get current major version", nil)

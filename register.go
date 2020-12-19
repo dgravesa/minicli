@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-func register(name, help string, command CmdImpl, hasExec, hasFlags bool) {
+func register(name, help string, command CmdImpl, hasExec, hasFlags bool) CmdDecl {
 	node, found := miniCmdMap[name]
 	if found {
 		// node already exists, so fill in or update its details
@@ -31,9 +31,12 @@ func register(name, help string, command CmdImpl, hasExec, hasFlags bool) {
 			currnode = nextnode
 		}
 
-		currnode.cmd = command
-		currnode.help = help
-		currnode.hasExec = hasExec
-		currnode.hasFlags = hasFlags
+		node = currnode
+		node.cmd = command
+		node.help = help
+		node.hasExec = hasExec
+		node.hasFlags = hasFlags
 	}
+
+	return CmdDecl{node}
 }
