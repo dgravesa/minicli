@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	minicli.Register("list", "list versions", nil) // TODO: not nil
+	minicli.RegisterFunc("list", "list versions", listVersions)
 	minicli.Register("current", "get current version", nil)
 	minicli.Register("current major", "get current major version", nil)
 	minicli.Register("current minor", "get current minor version", nil)

@@ -45,7 +45,6 @@ func Exec() error {
 	}
 
 	if subcommand.Command == nil {
-		// TODO: print usage
 		subcommand.writeUsage(os.Stdout)
 		return fmt.Errorf("not yet implemented")
 	}
