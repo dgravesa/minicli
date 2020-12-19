@@ -28,7 +28,7 @@ func newCommandNode(command Command, name, help string) *commandNode {
 		name:        name,
 		help:        help,
 		subcommands: make(map[string]*commandNode),
-		flags:       flag.NewFlagSet(name, flag.ContinueOnError),
+		flags:       flag.NewFlagSet(name, flag.ExitOnError),
 	}
 }
 

@@ -22,21 +22,24 @@ func Exec() error {
 		nextsubcommand, found := commandgraph[cmdpathext]
 		if found {
 			args := os.Args[subcommandindex+1 : i]
-			if subcommandindex == 0 {
-				// parse top-level arguments
-				err := flags.Parse(args)
-				if err != nil {
-					return err
-				}
-			} else {
+			if subcommand.Command != nil {
+				// prepare subcommand flags
+				subcommand.SetFlags(subcommand.flags)
+			}
+			// parse subcommand arguments
+			err := subcommand.flags.Parse(args)
+			if err != nil {
+				return err
+			}
+			argrem := subcommand.flags.Args()
+			if len(argrem) > 0 {
+				// positional arguments remaining after parsing subcommand's arguments
 				if subcommand.Command != nil {
-					// parse subcommand arguments
-					subcommand.SetFlags(subcommand.flags)
-					err := subcommand.flags.Parse(args)
-					if err != nil {
-						return err
-					}
+					// positional argument detected, so treat remaining arguments as positional
+					return subcommand.Exec(os.Args[subcommandindex+1:])
 				}
+				// no executable for subcommand, so treat next argument as unknown subcommand
+				return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
 			}
 			cmdpath = cmdpath + arg + " "
 			subcommandindex = i
@@ -45,14 +48,18 @@ func Exec() error {
 	}
 
 	if subcommand.Command == nil {
+		if len(subcommand.subcommands) == 0 {
+			// subcommand has no path to execution
+			return fmt.Errorf("not yet implemented")
+		}
+		// additional subcommand needed to execute
 		subcommand.writeUsage(os.Stdout)
-		return fmt.Errorf("not yet implemented")
+		return nil
 	}
 
 	// execute final subcommand
 	subcommand.SetFlags(subcommand.flags)
-	args := os.Args[subcommandindex+1:]
-	err := subcommand.flags.Parse(args)
+	err := subcommand.flags.Parse(os.Args[subcommandindex+1:])
 	if err != nil {
 		return err
 	}
