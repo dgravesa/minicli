@@ -1,18 +1,33 @@
 package minicli
 
-import "strings"
+import (
+	"flag"
+	"strings"
+)
 
-// Cmd registers a new subcommand. The name of the command is of the form
-// "sub1 sub2 ..." where deeper subcommand layers may be specified with a space in between.
+// Cmd registers a new subcommand.
+// The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
+// with a space in between.
 func Cmd(name, help string, command CmdImpl) {
 	register(name, help, command, false)
 }
 
-// Func registers a new subcommand using only an execution handler. The name of the
-// command is of the form "sub1 sub2 ..." where deeper subcommand layers may be specified with a
-// space in between.
+// Func registers a new subcommand that either has no argument parsing or handles all of its
+// argument parsing as part of its handler.
+// Func is most sensible to use for subcommands that don't have any deeper subcommands.
+// The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
+// with a space in between.
 func Func(name, help string, handler func(args []string) error) {
 	registerFunc(name, help, handler, false)
+}
+
+// Flags registers a new subcommand that only sets flags and does not have an associated execution.
+// Flags is most sensible to use for subcommands which only defer to deeper subcommands, although
+// this subcommand may be used to parse arguments needed by deeper subcommands.
+// The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
+// with a space in between.
+func Flags(name, help string, setflags func(flags *flag.FlagSet)) {
+	registerFlags(name, help, setflags)
 }
 
 func register(name, help string, command CmdImpl, isHelpFunc bool) {
@@ -59,5 +74,9 @@ func register(name, help string, command CmdImpl, isHelpFunc bool) {
 }
 
 func registerFunc(name, help string, handler func(args []string) error, isHelpFunc bool) {
-	register(name, help, &FuncCmd{handler: handler}, isHelpFunc)
+	register(name, help, &funcCmd{handler: handler}, isHelpFunc)
+}
+
+func registerFlags(name, help string, setflags func(flags *flag.FlagSet)) {
+	register(name, help, &flagsCmd{setflags: setflags}, false)
 }
