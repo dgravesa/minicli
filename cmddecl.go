@@ -10,6 +10,7 @@ type CmdDecl struct {
 // WithDescription sets long as the usage description for a command.
 // This method may be chained to a new command call so that additional details may be provided
 // in the usage dialog.
-func (c CmdDecl) WithDescription(long string) {
+func (c CmdDecl) WithDescription(long string) CmdDecl {
 	c.node.description = long
+	return c
 }
