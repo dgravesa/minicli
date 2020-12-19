@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 type cmdNode struct {
@@ -33,9 +32,18 @@ func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 }
 
 func (cmdnode *cmdNode) exec(args []string) error {
+	isHelp := func(arg string) bool {
+		return arg == "-help" || arg == "--help"
+	}
+
 	if len(cmdnode.subcommands) == 0 {
 		// this command has no subcommands
 		if cmdnode.hasExec {
+			if len(args) > 0 && isHelp(args[0]) {
+				// assume help request, so print usage and do not error
+				cmdnode.writeUsage(os.Stdout)
+				return nil
+			}
 			// execute this command with remaining arguments
 			return cmdnode.cmd.Exec(args)
 		}
@@ -72,7 +80,7 @@ func (cmdnode *cmdNode) exec(args []string) error {
 		if len(argrem) == 0 {
 			// assume missing subcommand
 			return fmt.Errorf("expected subcommand")
-		} else if strings.HasSuffix(argrem[0], "-help") {
+		} else if isHelp(argrem[0]) {
 			// assume help request, do not error
 			return nil
 		}
@@ -110,6 +118,7 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 
 	// print command line options, if any
 	if cmdnode.hasFlags {
+		cmdnode.setFlags()
 		resetw := cmdnode.flags.Output()
 		cmdnode.flags.SetOutput(w)
 		cmdnode.flags.Usage()
