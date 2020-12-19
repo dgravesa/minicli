@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-var commandgraph = map[string]*commandNode{
+var commandgraph = map[string]*cmdNode{
 	"": newCmdNode(nil, filepath.Base(os.Args[0]), ""),
 }
 

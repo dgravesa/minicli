@@ -15,34 +15,34 @@ type CmdImpl interface {
 	Exec(pargs []string) error
 }
 
-type commandNode struct {
+type cmdNode struct {
 	CmdImpl
 	name        string
 	help        string
-	subcommands map[string]*commandNode
+	subcommands map[string]*cmdNode
 	flags       *flag.FlagSet
 	flagsSet    bool
 }
 
-func newCmdNode(command CmdImpl, name, help string) *commandNode {
-	return &commandNode{
+func newCmdNode(command CmdImpl, name, help string) *cmdNode {
+	return &cmdNode{
 		CmdImpl:     command,
 		name:        name,
 		help:        help,
-		subcommands: make(map[string]*commandNode),
+		subcommands: make(map[string]*cmdNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
 		flagsSet:    false,
 	}
 }
 
-func helpFunc(cmdnode *commandNode) func(_ []string) error {
+func helpFunc(cmdnode *cmdNode) func(_ []string) error {
 	return func(_ []string) error {
 		cmdnode.writeUsage(os.Stdout)
 		return nil
 	}
 }
 
-func (cmdnode *commandNode) setFlags() {
+func (cmdnode *cmdNode) setFlags() {
 	if cmdnode.CmdImpl != nil {
 		if !cmdnode.flagsSet {
 			cmdnode.SetFlags(cmdnode.flags)
@@ -51,7 +51,7 @@ func (cmdnode *commandNode) setFlags() {
 	}
 }
 
-func (cmdnode *commandNode) writeUsage(w io.Writer) {
+func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 	if cmdnode.help != "" {
 		fmt.Fprintf(w, "%s: %s\n", cmdnode.name, cmdnode.help)
 	} else {
@@ -70,7 +70,7 @@ func (cmdnode *commandNode) writeUsage(w io.Writer) {
 	}
 
 	// print command line options
-	hasFlags := func(node *commandNode) bool {
+	hasFlags := func(node *cmdNode) bool {
 		hasflags := false
 		cmdnode.flags.VisitAll(func(_ *flag.Flag) {
 			hasflags = true
