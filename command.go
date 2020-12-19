@@ -21,6 +21,7 @@ type commandNode struct {
 	help        string
 	subcommands map[string]*commandNode
 	flags       *flag.FlagSet
+	flagsSet    bool
 }
 
 func newCommandNode(command Command, name, help string) *commandNode {
@@ -30,6 +31,7 @@ func newCommandNode(command Command, name, help string) *commandNode {
 		help:        help,
 		subcommands: make(map[string]*commandNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
+		flagsSet:    false,
 	}
 }
 
@@ -37,6 +39,15 @@ func helpFunc(cmdnode *commandNode) func(_ []string) error {
 	return func(_ []string) error {
 		cmdnode.writeUsage(os.Stdout)
 		return nil
+	}
+}
+
+func (cmdnode *commandNode) setFlags() {
+	if cmdnode.Command != nil {
+		if !cmdnode.flagsSet {
+			cmdnode.SetFlags(cmdnode.flags)
+		}
+		cmdnode.flagsSet = true
 	}
 }
 
@@ -49,11 +60,27 @@ func (cmdnode *commandNode) writeUsage(w io.Writer) {
 
 	fmt.Fprintln(w)
 
+	// print subcommands
 	if len(cmdnode.subcommands) > 0 {
-		fmt.Fprintln(w, "available subcommands:")
+		fmt.Fprintln(w, "Available subcommands:")
 		for name, subcmd := range cmdnode.subcommands {
 			fmt.Fprintf(w, "\t%s\t\t%s\n", name, subcmd.help)
 		}
+		fmt.Fprintln(w)
+	}
+
+	// print command line options
+	hasFlags := func(node *commandNode) bool {
+		hasflags := false
+		cmdnode.flags.VisitAll(func(_ *flag.Flag) {
+			hasflags = true
+		})
+		return hasflags
+	}
+	cmdnode.setFlags()
+	if hasFlags(cmdnode) {
+		cmdnode.flags.SetOutput(w)
+		cmdnode.flags.Usage()
 		fmt.Fprintln(w)
 	}
 }

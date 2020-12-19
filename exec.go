@@ -3,10 +3,11 @@ package minicli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 var commandgraph = map[string]*commandNode{
-	"": newCommandNode(nil, os.Args[0], ""),
+	"": newCommandNode(nil, filepath.Base(os.Args[0]), ""),
 }
 
 func init() {
@@ -28,7 +29,7 @@ func Exec() error {
 			args := os.Args[subcommandindex+1 : i]
 			if subcommand.Command != nil {
 				// prepare subcommand flags
-				subcommand.SetFlags(subcommand.flags)
+				subcommand.setFlags()
 			}
 			// parse subcommand arguments
 			err := subcommand.flags.Parse(args)
@@ -62,7 +63,7 @@ func Exec() error {
 	}
 
 	// execute final subcommand
-	subcommand.SetFlags(subcommand.flags)
+	subcommand.setFlags()
 	err := subcommand.flags.Parse(os.Args[subcommandindex+1:])
 	if err != nil {
 		return err
