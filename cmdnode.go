@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -119,13 +120,14 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 	// print subcommands, if any
 	if len(cmdnode.subcommands) > 0 {
 		maxlen := 0
-		subcmds := []*cmdNode{}
-		for _, subcmd := range cmdnode.subcommands {
-			subcmds = append(subcmds, subcmd)
-			if len(subcmd.name) > maxlen {
-				maxlen = len(subcmd.name)
+		subcmdnames := []string{}
+		for name := range cmdnode.subcommands {
+			subcmdnames = append(subcmdnames, name)
+			if len(name) > maxlen {
+				maxlen = len(name)
 			}
 		}
+		sort.Strings(subcmdnames)
 
 		// compute margins
 		tabw := 8
@@ -134,7 +136,8 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 		helpoffset := tabw * ((maxlen+buf)/tabw + 1)
 
 		fmt.Fprintln(w, "Available subcommands:")
-		for _, subcmd := range subcmds {
+		for _, name := range subcmdnames {
+			subcmd := cmdnode.subcommands[name]
 			offsetrem := helpoffset - len(subcmd.name)
 			offsetstr := strings.Repeat(" ", offsetrem)
 			fmt.Fprintf(w, "%s%s%s%s\n", tabstr, subcmd.name, offsetstr, subcmd.help)
