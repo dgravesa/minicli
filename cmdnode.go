@@ -51,9 +51,9 @@ func (cmdnode *cmdNode) exec(args []string) error {
 				return nil
 			}
 			// parse arguments for this node
-			cmdnode.parseArgs(args)
+			argrem := cmdnode.parseArgs(args)
 			// execute this command with remaining arguments
-			return cmdnode.cmd.Exec(args)
+			return cmdnode.cmd.Exec(argrem)
 		}
 		// no execution and no subcommands, so assume not yet implemented
 		return fmt.Errorf("not yet implemented")
@@ -65,19 +65,18 @@ func (cmdnode *cmdNode) exec(args []string) error {
 		if found {
 			// subcommand found
 			// parse arguments for this command
-			cmdnode.parseArgs(args[0:i])
+			argrem := cmdnode.parseArgs(args[0:i])
+			if len(argrem) > 0 {
+				// unexpected positional argument, so assume unrecognized subcommand
+				return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
+			}
 			// defer execution to subcommand
 			return nextnode.exec(args[i+1:])
 		}
 	}
 
 	// this command has subcommands but none found in remaining arguments
-	argrem := args
-	if cmdnode.hasFlags {
-		// this command has flags to parse
-		cmdnode.parseArgs(args)
-		argrem = cmdnode.flags.Args()
-	}
+	argrem := cmdnode.parseArgs(args)
 	if !cmdnode.hasExec {
 		// this command is not executable
 		cmdnode.writeUsage(os.Stdout)
@@ -102,9 +101,14 @@ func (cmdnode *cmdNode) setFlags() {
 	}
 }
 
-func (cmdnode *cmdNode) parseArgs(args []string) {
-	cmdnode.setFlags()
-	cmdnode.flags.Parse(args)
+// parseArgs parses arguments using a node's flags and returns any remaining positional arguments
+func (cmdnode *cmdNode) parseArgs(args []string) []string {
+	if cmdnode.hasFlags {
+		cmdnode.setFlags()
+		cmdnode.flags.Parse(args)
+		return cmdnode.flags.Args()
+	}
+	return args
 }
 
 func (cmdnode *cmdNode) writeUsage(w io.Writer) {
