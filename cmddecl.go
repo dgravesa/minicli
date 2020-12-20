@@ -8,9 +8,13 @@ type CmdDecl struct {
 }
 
 // WithDescription sets long as the usage description for a command.
-// This method may be chained to a new command call so that additional details may be provided
-// in the usage dialog.
 func (c CmdDecl) WithDescription(long string) CmdDecl {
 	c.node.description = long
+	return c
+}
+
+// WithUsage sets the usage string to display with the help dialog for the command.
+func (c CmdDecl) WithUsage(usage string) CmdDecl {
+	c.node.usage = usage
 	return c
 }

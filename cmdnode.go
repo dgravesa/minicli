@@ -13,6 +13,7 @@ type cmdNode struct {
 	cmd         CmdImpl
 	name        string
 	help        string
+	usage       string
 	description string
 	subcommands map[string]*cmdNode
 	flags       *flag.FlagSet
@@ -26,6 +27,7 @@ func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 		cmd:         nil,
 		name:        name,
 		help:        "",
+		usage:       "",
 		description: "",
 		subcommands: make(map[string]*cmdNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
@@ -114,6 +116,16 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 	}
 	fmt.Fprintln(w)
 
+	tabw := 8
+	tabstr := strings.Repeat(" ", tabw)
+
+	// print usage, if there is one
+	if cmdnode.usage != "" {
+		fmt.Fprintln(w, "Usage:")
+		fmt.Fprintf(w, "%s%s %s\n", tabstr, cmdnode.name, cmdnode.usage)
+		fmt.Fprintln(w)
+	}
+
 	// print long description, if there is one
 	if cmdnode.description != "" {
 		fmt.Fprintln(w, cmdnode.description)
@@ -133,8 +145,6 @@ func (cmdnode *cmdNode) writeUsage(w io.Writer) {
 		sort.Strings(subcmdnames)
 
 		// compute margins
-		tabw := 8
-		tabstr := strings.Repeat(" ", tabw)
 		buf := 5
 		helpoffset := tabw * ((maxlen+buf)/tabw + 1)
 

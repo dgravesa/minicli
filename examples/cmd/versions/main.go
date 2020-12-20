@@ -23,14 +23,16 @@ func main() {
 	// -C flag for specifying path to run
 	minicli.Flags("", "", func(flags *flag.FlagSet) {
 		flags.StringVar(&gCmdDir, "C", ".", "run as if command were executed in specified path")
-	}).WithDescription(description)
+	}).WithDescription(description).WithUsage("[-C <path>] <command> [arguments]")
 
 	minicli.Func("list", "list versions", printVersionsList)
 	minicli.Func("current", "get current version", printCurrentVersion)
 	minicli.Func("current major", "get current major version", printCurrentMajorVersion)
 	minicli.Func("current minor", "get current minor version", printCurrentMinorVersion)
 	minicli.Func("current patch", "get current patch version", nil) // TODO: implement
-	minicli.Cmd("suggest", "suggest a version", new(suggestCmd)).WithDescription(suggestDescript)
+	minicli.Cmd("suggest", "suggest a version", new(suggestCmd)).
+		WithDescription(suggestDescript).
+		WithUsage("-change=<type>")
 
 	err := minicli.Exec()
 	if err != nil {

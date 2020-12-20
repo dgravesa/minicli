@@ -44,9 +44,8 @@ func Exec() error {
 func Cmd(name, help string, command CmdImpl) CmdDecl {
 	if command != nil {
 		return register(name, help, command, true, true)
-	} else {
-		return register(name, help, nil, false, false)
 	}
+	return register(name, help, nil, false, false)
 }
 
 // Func registers a new subcommand that either has no argument parsing or handles all of its
@@ -57,9 +56,8 @@ func Cmd(name, help string, command CmdImpl) CmdDecl {
 func Func(name, help string, handler func(args []string) error) CmdDecl {
 	if handler != nil {
 		return register(name, help, &funcCmd{handler: handler}, true, false)
-	} else {
-		return register(name, help, nil, false, false)
 	}
+	return register(name, help, nil, false, false)
 }
 
 // Flags registers a new subcommand that only sets flags and does not have an associated execution.
@@ -70,7 +68,6 @@ func Func(name, help string, handler func(args []string) error) CmdDecl {
 func Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdDecl {
 	if setflags != nil {
 		return register(name, help, &flagsCmd{setflags: setflags}, false, true)
-	} else {
-		return register(name, help, nil, false, false)
 	}
+	return register(name, help, nil, false, false)
 }
