@@ -67,6 +67,11 @@ func (cmdnode *cmdNode) exec(args []string) error {
 			// parse arguments for this command
 			argrem := cmdnode.parseArgs(args[0:i])
 			if len(argrem) > 0 {
+				// positional arguments found
+				if cmdnode.hasExec {
+					// assume all remaining arguments as positionals intended for this command
+					return cmdnode.cmd.Exec(argrem)
+				}
 				// unexpected positional argument, so assume unrecognized subcommand
 				return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
 			}
