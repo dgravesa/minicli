@@ -48,6 +48,8 @@ func (cmdnode *cmdNode) exec(args []string) error {
 				cmdnode.writeUsage(os.Stdout)
 				return nil
 			}
+			// parse arguments for this node
+			cmdnode.parseArgs(args)
 			// execute this command with remaining arguments
 			return cmdnode.cmd.Exec(args)
 		}
@@ -60,11 +62,8 @@ func (cmdnode *cmdNode) exec(args []string) error {
 		nextnode, found := cmdnode.subcommands[arg]
 		if found {
 			// subcommand found
-			if cmdnode.hasFlags {
-				// parse arguments for this node
-				cmdnode.setFlags()
-				cmdnode.flags.Parse(args[0:i])
-			}
+			// parse arguments for this command
+			cmdnode.parseArgs(args[0:i])
 			// defer execution to subcommand
 			return nextnode.exec(args[i+1:])
 		}
@@ -74,8 +73,7 @@ func (cmdnode *cmdNode) exec(args []string) error {
 	argrem := args
 	if cmdnode.hasFlags {
 		// this command has flags to parse
-		cmdnode.setFlags()
-		cmdnode.flags.Parse(args)
+		cmdnode.parseArgs(args)
 		argrem = cmdnode.flags.Args()
 	}
 	if !cmdnode.hasExec {
@@ -100,6 +98,11 @@ func (cmdnode *cmdNode) setFlags() {
 		cmdnode.cmd.SetFlags(cmdnode.flags)
 		cmdnode.flagsSet = true
 	}
+}
+
+func (cmdnode *cmdNode) parseArgs(args []string) {
+	cmdnode.setFlags()
+	cmdnode.flags.Parse(args)
 }
 
 func (cmdnode *cmdNode) writeUsage(w io.Writer) {

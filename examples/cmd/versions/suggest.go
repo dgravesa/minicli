@@ -3,44 +3,45 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"golang.org/x/mod/semver"
 )
 
-type SuggestCmd struct {
+type suggestCmd struct {
 	incrementType string
 }
 
-func (s *SuggestCmd) SetFlags(flags *flag.FlagSet) {
-	flags.StringVar(&s.incrementType, "inc", "major", "type of increment [major,minor,patch]")
+func (s *suggestCmd) SetFlags(flags *flag.FlagSet) {
+	flags.StringVar(&s.incrementType, "change", "breaking", "type of increment [breaking,feature,bugfix]")
 }
 
-func (s *SuggestCmd) Exec(args []string) error {
+func (s *suggestCmd) Exec(_ []string) error {
 	_, found := map[string]struct{}{
-		"major": {},
-		"minor": {},
-		"patch": {},
+		"breaking": {},
+		"feature":  {},
+		"bugfix":   {},
 	}[s.incrementType]
 
 	if !found {
 		return fmt.Errorf("invalid increment type: %s", s.incrementType)
 	}
 
-	// calculate increment for each arg, if present
-	for _, arg := range args {
-		newver, err := s.increment(arg)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		} else {
-			fmt.Println(newver)
-		}
+	version, err := currentVersion(gCmdDir)
+	if err != nil {
+		return err
 	}
+
+	incversion, err := s.increment(version)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(incversion)
 
 	return nil
 }
 
-func (s SuggestCmd) increment(v string) (string, error) {
+func (s suggestCmd) increment(v string) (string, error) {
 	if !semver.IsValid(v) {
 		return "", fmt.Errorf("%s: not a valid version", v)
 	}
@@ -48,14 +49,16 @@ func (s SuggestCmd) increment(v string) (string, error) {
 	var result string
 	var err error
 	switch s.incrementType {
-	case "major":
+	case "breaking":
 		var major int
 		_, err = fmt.Sscanf(semver.Major(v), "v%d", &major)
 		result = fmt.Sprintf("v%d.0.0", major+1)
-	case "minor":
+	case "feature":
 		var major, minor int
 		_, err = fmt.Sscanf(semver.MajorMinor(v), "v%d.%d", &major, &minor)
 		result = fmt.Sprintf("v%d.%d.0", major, minor+1)
+	case "bugfix":
+		fallthrough
 	default:
 		var major, minor, patch int
 		_, err = fmt.Sscanf(semver.Canonical(v), "v%d.%d.%d", &major, &minor, &patch)
