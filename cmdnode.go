@@ -23,7 +23,7 @@ type cmdNode struct {
 
 func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 	return &cmdNode{
-		cmd:         nil,
+		cmd:         &emptyCmd{},
 		name:        name,
 		help:        "",
 		usage:       "",
