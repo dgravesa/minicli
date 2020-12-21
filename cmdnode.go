@@ -38,18 +38,9 @@ func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 }
 
 func (cmdnode *cmdNode) exec(args []string) error {
-	isHelp := func(arg string) bool {
-		return arg == "-help" || arg == "--help"
-	}
-
 	if len(cmdnode.subcommands) == 0 {
 		// this command has no subcommands
 		if cmdnode.hasExec {
-			if len(args) > 0 && isHelp(args[0]) {
-				// assume help request, so print usage and do not error
-				cmdnode.writeUsage(os.Stdout)
-				return nil
-			}
 			// parse arguments for this node
 			argrem := cmdnode.parseArgs(args)
 			// execute this command with remaining arguments
@@ -88,9 +79,6 @@ func (cmdnode *cmdNode) exec(args []string) error {
 		if len(argrem) == 0 {
 			// assume missing subcommand
 			return fmt.Errorf("expected subcommand")
-		} else if isHelp(argrem[0]) {
-			// assume help request, do not error
-			return nil
 		}
 		// assume unrecognized subcommand
 		return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
