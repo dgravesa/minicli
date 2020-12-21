@@ -10,7 +10,7 @@ import (
 var execname = filepath.Base(os.Args[0])
 
 // initialize graph entry as top level node
-var miniCmdGraph = newCmdNode(execname, false, false)
+var miniCmdGraph = newCmdNode(execname, false)
 
 // initialize command map with top level node
 var miniCmdMap = map[string]*cmdNode{
@@ -42,9 +42,9 @@ func Exec() error {
 // with a space in between.
 func Cmd(name, help string, command CmdImpl) CmdDecl {
 	if command != nil {
-		return register(name, help, command, true, true)
+		return register(name, help, command, true)
 	}
-	return register(name, help, &emptyCmd{}, false, false)
+	return register(name, help, &emptyCmd{}, false)
 }
 
 // Func registers a new subcommand that either has no argument parsing or handles all of its
@@ -54,9 +54,9 @@ func Cmd(name, help string, command CmdImpl) CmdDecl {
 // with a space in between.
 func Func(name, help string, handler func(args []string) error) CmdDecl {
 	if handler != nil {
-		return register(name, help, &funcCmd{handler: handler}, true, false)
+		return register(name, help, &funcCmd{handler: handler}, false)
 	}
-	return register(name, help, &emptyCmd{}, false, false)
+	return register(name, help, &emptyCmd{}, false)
 }
 
 // Flags registers a new subcommand that only sets flags and does not have an associated execution.
@@ -66,7 +66,7 @@ func Func(name, help string, handler func(args []string) error) CmdDecl {
 // with a space in between.
 func Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdDecl {
 	if setflags != nil {
-		return register(name, help, &flagsCmd{setflags: setflags}, false, true)
+		return register(name, help, &flagsCmd{setflags: setflags}, true)
 	}
-	return register(name, help, &emptyCmd{}, false, false)
+	return register(name, help, &emptyCmd{}, false)
 }

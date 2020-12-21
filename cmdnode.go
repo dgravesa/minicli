@@ -17,11 +17,10 @@ type cmdNode struct {
 	subcommands map[string]*cmdNode
 	flags       *flag.FlagSet
 	flagsSet    bool
-	hasExec     bool
 	hasFlags    bool
 }
 
-func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
+func newCmdNode(name string, hasFlags bool) *cmdNode {
 	return &cmdNode{
 		cmd:         &emptyCmd{},
 		name:        name,
@@ -31,7 +30,6 @@ func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 		subcommands: make(map[string]*cmdNode),
 		flags:       flag.NewFlagSet(name, flag.ExitOnError),
 		flagsSet:    false,
-		hasExec:     hasExec,
 		hasFlags:    hasFlags,
 	}
 }

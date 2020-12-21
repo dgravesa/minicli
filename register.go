@@ -4,13 +4,12 @@ import (
 	"strings"
 )
 
-func register(name, help string, command CmdImpl, hasExec, hasFlags bool) CmdDecl {
+func register(name, help string, command CmdImpl, hasFlags bool) CmdDecl {
 	node, found := miniCmdMap[name]
 	if found {
 		// node already exists, so fill in or update its details
 		node.cmd = command
 		node.help = help
-		node.hasExec = hasExec
 		node.hasFlags = hasFlags
 	} else {
 		subcmds := strings.Split(name, " ")
@@ -22,7 +21,7 @@ func register(name, help string, command CmdImpl, hasExec, hasFlags bool) CmdDec
 			nextnode, found := currnode.subcommands[subcmd]
 			if !found {
 				// node does not exist, so create it
-				nextnode = newCmdNode(subcmd, false, false)
+				nextnode = newCmdNode(subcmd, false)
 				// insert new node into graph
 				currnode.subcommands[subcmd] = nextnode
 				// insert new node into map
@@ -35,7 +34,6 @@ func register(name, help string, command CmdImpl, hasExec, hasFlags bool) CmdDec
 		node = currnode
 		node.cmd = command
 		node.help = help
-		node.hasExec = hasExec
 		node.hasFlags = hasFlags
 	}
 
