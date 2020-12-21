@@ -2,7 +2,6 @@ package minicli
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,7 +26,7 @@ func init() {
 			node.writeUsage(os.Stdout)
 		} else {
 			// command not found
-			return fmt.Errorf("command not found: %s", mapname)
+			return &HelpError{mapname}
 		}
 		return nil
 	})
@@ -45,7 +44,7 @@ func Cmd(name, help string, command CmdImpl) CmdDecl {
 	if command != nil {
 		return register(name, help, command, true, true)
 	}
-	return register(name, help, nil, false, false)
+	return register(name, help, &emptyCmd{}, false, false)
 }
 
 // Func registers a new subcommand that either has no argument parsing or handles all of its
@@ -57,7 +56,7 @@ func Func(name, help string, handler func(args []string) error) CmdDecl {
 	if handler != nil {
 		return register(name, help, &funcCmd{handler: handler}, true, false)
 	}
-	return register(name, help, nil, false, false)
+	return register(name, help, &emptyCmd{}, false, false)
 }
 
 // Flags registers a new subcommand that only sets flags and does not have an associated execution.
@@ -69,5 +68,5 @@ func Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdDecl {
 	if setflags != nil {
 		return register(name, help, &flagsCmd{setflags: setflags}, false, true)
 	}
-	return register(name, help, nil, false, false)
+	return register(name, help, &emptyCmd{}, false, false)
 }

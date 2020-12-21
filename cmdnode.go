@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"strings"
 )
@@ -38,53 +37,26 @@ func newCmdNode(name string, hasExec, hasFlags bool) *cmdNode {
 }
 
 func (cmdnode *cmdNode) exec(args []string) error {
-	if len(cmdnode.subcommands) == 0 {
-		// this command has no subcommands
-		if cmdnode.hasExec {
-			// parse arguments for this node
-			argrem := cmdnode.parseArgs(args)
-			// execute this command with remaining arguments
-			return cmdnode.cmd.Exec(argrem)
-		}
-		// no execution and no subcommands, so assume not yet implemented
-		return fmt.Errorf("not yet implemented")
-	}
-
-	// search for next subcommand
-	for i, arg := range args {
-		nextnode, found := cmdnode.subcommands[arg]
-		if found {
-			// subcommand found
-			// parse arguments for this command
-			argrem := cmdnode.parseArgs(args[0:i])
-			if len(argrem) > 0 {
-				// positional arguments found
-				if cmdnode.hasExec {
-					// assume all remaining arguments as positionals intended for this command
-					return cmdnode.cmd.Exec(argrem)
+	if len(cmdnode.subcommands) > 0 {
+		// search for next subcommand
+		for i, arg := range args {
+			nextnode, found := cmdnode.subcommands[arg]
+			if found {
+				// subcommand found
+				// parse arguments for this command
+				argrem := cmdnode.parseArgs(args[0:i])
+				if len(argrem) > 0 {
+					// unexpected positional arguments
+					return &UnknownSubcmdError{cmdnode.name, argrem[0]}
 				}
-				// unexpected positional argument, so assume unrecognized subcommand
-				return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
+				// defer execution to subcommand
+				return nextnode.exec(args[i+1:])
 			}
-			// defer execution to subcommand
-			return nextnode.exec(args[i+1:])
 		}
 	}
-
-	// this command has subcommands but none found in remaining arguments
+	// no further subcommands
 	argrem := cmdnode.parseArgs(args)
-	if !cmdnode.hasExec {
-		// this command is not executable
-		cmdnode.writeUsage(os.Stdout)
-		if len(argrem) == 0 {
-			// assume missing subcommand
-			return fmt.Errorf("expected subcommand")
-		}
-		// assume unrecognized subcommand
-		return fmt.Errorf("unrecognized subcommand: %s", argrem[0])
-	}
-	// execute this command with remaining arguments
-	return cmdnode.cmd.Exec(argrem)
+	return cmdnode.execCmd(argrem)
 }
 
 func (cmdnode *cmdNode) setFlags() {
@@ -102,6 +74,24 @@ func (cmdnode *cmdNode) parseArgs(args []string) []string {
 		return cmdnode.flags.Args()
 	}
 	return args
+}
+
+func (cmdnode *cmdNode) execCmd(args []string) error {
+	err := cmdnode.cmd.Exec(args)
+
+	// return more meaningful error type
+	switch v := err.(type) {
+	case *NotImplementedError:
+		if len(cmdnode.subcommands) > 0 {
+			if len(args) > 0 {
+				return &UnknownSubcmdError{cmdnode.name, args[0]}
+			}
+			return &MissingSubcmdError{cmdnode.name}
+		}
+		return &NotImplementedError{cmdnode.name}
+	default:
+		return v
+	}
 }
 
 func (cmdnode *cmdNode) writeUsage(w io.Writer) {

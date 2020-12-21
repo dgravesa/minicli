@@ -2,7 +2,6 @@ package minicli
 
 import (
 	"flag"
-	"fmt"
 )
 
 // flagsCmd is a CmdImpl that only sets arguments and has no corresponding execution.
@@ -15,6 +14,5 @@ func (flc *flagsCmd) SetFlags(flags *flag.FlagSet) {
 }
 
 func (flc *flagsCmd) Exec(_ []string) error {
-	// NOTE: this should not be reachable
-	return fmt.Errorf("not implemented")
+	return &NotImplementedError{}
 }

@@ -12,7 +12,7 @@ type suggestCmd struct {
 }
 
 func (s *suggestCmd) SetFlags(flags *flag.FlagSet) {
-	flags.StringVar(&s.incrementType, "change", "breaking", "type of increment [breaking,feature,bugfix]")
+	flags.StringVar(&s.incrementType, "changes", "breaking", "type of increment [breaking,feature,bugfix]")
 }
 
 func (s *suggestCmd) Exec(_ []string) error {

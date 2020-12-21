@@ -17,6 +17,7 @@ func register(name, help string, command CmdImpl, hasExec, hasFlags bool) CmdDec
 		currnode := miniCmdGraph
 
 		// fill command graph up to this subcommand
+		// TODO: fill in from back to front to improve performance
 		for i, subcmd := range subcmds {
 			nextnode, found := currnode.subcommands[subcmd]
 			if !found {
