@@ -31,8 +31,10 @@ func parse2Floats(args []string) (float64, float64, error) {
 }
 
 func main() {
+	cli := minicli.New()
+
 	// define add command
-	minicli.Func("add", "add two values", func(args []string) error {
+	cli.Func("add", "add two values", func(args []string) error {
 		val1, val2, err := parse2Floats(args)
 		if err != nil {
 			return err
@@ -43,7 +45,7 @@ func main() {
 	})
 
 	// define subtract command
-	minicli.Func("subtract", "subtract two values", func(args []string) error {
+	cli.Func("subtract", "subtract two values", func(args []string) error {
 		val1, val2, err := parse2Floats(args)
 		if err != nil {
 			return err
@@ -54,7 +56,7 @@ func main() {
 	})
 
 	// define multiply command
-	minicli.Func("multiply", "multiply two values", func(args []string) error {
+	cli.Func("multiply", "multiply two values", func(args []string) error {
 		val1, val2, err := parse2Floats(args)
 		if err != nil {
 			return err
@@ -65,7 +67,7 @@ func main() {
 	})
 
 	// define divide command
-	minicli.Func("divide", "divide two values", func(args []string) error {
+	cli.Func("divide", "divide two values", func(args []string) error {
 		val1, val2, err := parse2Floats(args)
 		if err != nil {
 			return err
@@ -80,7 +82,7 @@ func main() {
 	})
 
 	// define sum command
-	minicli.Func("sum", "calculate sum of values", func(args []string) error {
+	cli.Func("sum", "calculate sum of values", func(args []string) error {
 		vals, err := parseFloats(args)
 		if err != nil {
 			return err
@@ -96,7 +98,7 @@ func main() {
 	})
 
 	// execute command
-	if err := minicli.Exec(); err != nil {
+	if err := cli.Exec(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

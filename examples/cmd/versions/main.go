@@ -20,21 +20,23 @@ Bug fixes will result in a patch version increment suggestion.`
 var gCmdDir string
 
 func main() {
+	cli := minicli.New()
+
 	// -C flag for specifying path to run
-	minicli.Flags("", "", func(flags *flag.FlagSet) {
+	cli.Flags("", "", func(flags *flag.FlagSet) {
 		flags.StringVar(&gCmdDir, "C", ".", "run as if command were executed in specified path")
 	}).WithDescription(description).WithUsage("[-C <path>] <command> [arguments]")
 
-	minicli.Func("list", "list versions", printVersionsList)
-	minicli.Func("current", "get current version", printCurrentVersion)
-	minicli.Func("current major", "get current major version", printCurrentMajorVersion)
-	minicli.Func("current minor", "get current minor version", printCurrentMinorVersion)
-	minicli.Func("current patch", "get current patch version", nil) // TODO: implement
-	minicli.Cmd("suggest", "suggest a version", new(suggestCmd)).
+	cli.Func("list", "list versions", printVersionsList)
+	cli.Func("current", "get current version", printCurrentVersion)
+	cli.Func("current major", "get current major version", printCurrentMajorVersion)
+	cli.Func("current minor", "get current minor version", printCurrentMinorVersion)
+	cli.Func("current patch", "get current patch version", nil) // TODO: implement
+	cli.Cmd("suggest", "suggest a version", new(suggestCmd)).
 		WithDescription(suggestDescript).
 		WithUsage("-change=<type>")
 
-	err := minicli.Exec()
+	err := cli.Exec()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
