@@ -13,8 +13,8 @@ var execname = filepath.Base(os.Args[0])
 // Commands are registered to the graph with Cmd(), Func(), and Flags() methods.
 // The graph is executed with the Exec() method.
 type CmdGraph struct {
-	head   *cmdNode
-	cmdmap map[string]*cmdNode
+	head   *CmdNode
+	cmdmap map[string]*CmdNode
 }
 
 // New initializes and returns a new command graph.
@@ -22,7 +22,7 @@ func New() *CmdGraph {
 	head := newCmdNode(execname, false)
 	cmdgraph := &CmdGraph{
 		head: head,
-		cmdmap: map[string]*cmdNode{
+		cmdmap: map[string]*CmdNode{
 			"": head,
 		},
 	}
@@ -50,7 +50,7 @@ func (cmdgraph *CmdGraph) Exec() error {
 // Cmd is best used for commands that are executable and have argument parsing.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func (cmdgraph *CmdGraph) Cmd(name, help string, command Cmd) CmdNode {
+func (cmdgraph *CmdGraph) Cmd(name, help string, command Cmd) *CmdNode {
 	if command != nil {
 		return cmdgraph.register(name, help, command, true)
 	}
@@ -62,7 +62,7 @@ func (cmdgraph *CmdGraph) Cmd(name, help string, command Cmd) CmdNode {
 // arguments.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) error) CmdNode {
+func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) error) *CmdNode {
 	if handler != nil {
 		return cmdgraph.register(name, help, &funcCmd{handler: handler}, false)
 	}
@@ -72,14 +72,14 @@ func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) er
 // Flags registers a new command that only sets flags and defers to subcommands.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func (cmdgraph *CmdGraph) Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdNode {
+func (cmdgraph *CmdGraph) Flags(name, help string, setflags func(flags *flag.FlagSet)) *CmdNode {
 	if setflags != nil {
 		return cmdgraph.register(name, help, &flagsCmd{setflags: setflags}, true)
 	}
 	return cmdgraph.register(name, help, &emptyCmd{}, false)
 }
 
-func (cmdgraph *CmdGraph) register(name, help string, command Cmd, hasFlags bool) CmdNode {
+func (cmdgraph *CmdGraph) register(name, help string, command Cmd, hasFlags bool) *CmdNode {
 	node, found := cmdgraph.cmdmap[name]
 	if found {
 		// node already exists, so fill in or update its details
@@ -112,5 +112,5 @@ func (cmdgraph *CmdGraph) register(name, help string, command Cmd, hasFlags bool
 		node.hasFlags = hasFlags
 	}
 
-	return CmdNode{node}
+	return node
 }
