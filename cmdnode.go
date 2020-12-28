@@ -10,7 +10,6 @@ import (
 
 // CmdNode is returned when a new command is registered with Cmd(), Func(), or Flags().
 // This type provides a way of extending functionality with method chains.
-// For example, a longer usage description may be added using WithDescription().
 type CmdNode struct {
 	node *cmdNode
 }

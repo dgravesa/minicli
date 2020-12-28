@@ -10,7 +10,7 @@ import (
 var execname = filepath.Base(os.Args[0])
 
 // CmdGraph is the executable graph used for parsing commands and subcommands.
-// Commands are registered with Cmd(), Func(), and Flags() methods.
+// Commands are registered to the graph with Cmd(), Func(), and Flags() methods.
 // The graph is executed with the Exec() method.
 type CmdGraph struct {
 	head   *cmdNode
@@ -46,7 +46,8 @@ func (cmdgraph *CmdGraph) Exec() error {
 	return cmdgraph.head.exec(os.Args[1:])
 }
 
-// Cmd registers a new subcommand.
+// Cmd registers a new command that implements the Cmd interface.
+// Cmd is best used for commands that are executable and have argument parsing.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
 func (cmdgraph *CmdGraph) Cmd(name, help string, command Cmd) CmdNode {
@@ -56,9 +57,9 @@ func (cmdgraph *CmdGraph) Cmd(name, help string, command Cmd) CmdNode {
 	return cmdgraph.register(name, help, &emptyCmd{}, false)
 }
 
-// Func registers a new subcommand that either has no argument parsing or handles all of its
-// argument parsing as part of its handler.
-// Func is most sensible to use for subcommands that don't have any deeper subcommands.
+// Func registers a new command that only defines an execution.
+// Func is best used for commands that do not have any argument parsing, but may use positional
+// arguments.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
 func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) error) CmdNode {
@@ -68,9 +69,7 @@ func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) er
 	return cmdgraph.register(name, help, &emptyCmd{}, false)
 }
 
-// Flags registers a new subcommand that only sets flags and does not have an associated execution.
-// Flags is most sensible to use for subcommands which only defer to deeper subcommands, although
-// this subcommand may be used to parse arguments needed by deeper subcommands.
+// Flags registers a new command that only sets flags and defers to subcommands.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
 func (cmdgraph *CmdGraph) Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdNode {
