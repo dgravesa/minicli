@@ -49,7 +49,7 @@ func (cmdgraph *CmdGraph) Exec() error {
 // Cmd registers a new subcommand.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func (cmdgraph *CmdGraph) Cmd(name, help string, command CmdImpl) CmdDecl {
+func (cmdgraph *CmdGraph) Cmd(name, help string, command Cmd) CmdNode {
 	if command != nil {
 		return cmdgraph.register(name, help, command, true)
 	}
@@ -61,7 +61,7 @@ func (cmdgraph *CmdGraph) Cmd(name, help string, command CmdImpl) CmdDecl {
 // Func is most sensible to use for subcommands that don't have any deeper subcommands.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) error) CmdDecl {
+func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) error) CmdNode {
 	if handler != nil {
 		return cmdgraph.register(name, help, &funcCmd{handler: handler}, false)
 	}
@@ -73,14 +73,14 @@ func (cmdgraph *CmdGraph) Func(name, help string, handler func(args []string) er
 // this subcommand may be used to parse arguments needed by deeper subcommands.
 // The name of the command is of the form "sub1 sub2 ..." where subcommand layers are specified
 // with a space in between.
-func (cmdgraph *CmdGraph) Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdDecl {
+func (cmdgraph *CmdGraph) Flags(name, help string, setflags func(flags *flag.FlagSet)) CmdNode {
 	if setflags != nil {
 		return cmdgraph.register(name, help, &flagsCmd{setflags: setflags}, true)
 	}
 	return cmdgraph.register(name, help, &emptyCmd{}, false)
 }
 
-func (cmdgraph *CmdGraph) register(name, help string, command CmdImpl, hasFlags bool) CmdDecl {
+func (cmdgraph *CmdGraph) register(name, help string, command Cmd, hasFlags bool) CmdNode {
 	node, found := cmdgraph.cmdmap[name]
 	if found {
 		// node already exists, so fill in or update its details
@@ -113,5 +113,5 @@ func (cmdgraph *CmdGraph) register(name, help string, command CmdImpl, hasFlags 
 		node.hasFlags = hasFlags
 	}
 
-	return CmdDecl{node}
+	return CmdNode{node}
 }

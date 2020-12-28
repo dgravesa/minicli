@@ -8,8 +8,27 @@ import (
 	"strings"
 )
 
+// CmdNode is returned when a new command is registered with Cmd(), Func(), or Flags().
+// This type provides a way of extending functionality with method chains.
+// For example, a longer usage description may be added using WithDescription().
+type CmdNode struct {
+	node *cmdNode
+}
+
+// WithDescription sets long as the usage description for a command.
+func (c CmdNode) WithDescription(long string) CmdNode {
+	c.node.description = long
+	return c
+}
+
+// WithUsage sets the usage string to display with the help dialog for the command.
+func (c CmdNode) WithUsage(usage string) CmdNode {
+	c.node.usage = usage
+	return c
+}
+
 type cmdNode struct {
-	cmd         CmdImpl
+	cmd         Cmd
 	name        string
 	help        string
 	usage       string
