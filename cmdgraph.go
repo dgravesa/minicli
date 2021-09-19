@@ -81,12 +81,8 @@ func (cmdgraph *CmdGraph) Flags(name, help string, setflags func(flags *flag.Fla
 
 func (cmdgraph *CmdGraph) register(name, help string, command Cmd, hasFlags bool) *CmdNode {
 	node, found := cmdgraph.cmdmap[name]
-	if found {
-		// node already exists, so fill in or update its details
-		node.cmd = command
-		node.help = help
-		node.hasFlags = hasFlags
-	} else {
+
+	if !found {
 		subcmds := strings.Split(name, " ")
 		currnode := cmdgraph.head
 
@@ -107,10 +103,11 @@ func (cmdgraph *CmdGraph) register(name, help string, command Cmd, hasFlags bool
 		}
 
 		node = currnode
-		node.cmd = command
-		node.help = help
-		node.hasFlags = hasFlags
 	}
+
+	node.cmd = command
+	node.help = help
+	node.hasFlags = hasFlags
 
 	return node
 }
